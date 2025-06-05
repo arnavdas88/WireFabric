@@ -106,7 +106,7 @@ ENV/
 # Hidden files and directories
 .*/
 .*/*
-*.*
+.*.*
 
 # Wireguard-py
 wireguard_py/
