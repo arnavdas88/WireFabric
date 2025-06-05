@@ -1,0 +1,6 @@
+pyroute2
+fastapi[all]
+sqlmodel
+websockets
+uvicorn
+# git+https://github.com/arnavdas88/wireguard_py.git@main
