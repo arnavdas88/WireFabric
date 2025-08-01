@@ -22,7 +22,7 @@ class VirtualFabricNodes:
     private_endpoint: Optional[Endpoint] # Endpoint(ip=..., port=...)
     management_port: Optional[int]
     keys: WireguardKey # WireguardKey.generate(), WireguardKey(...).private_key(), WireguardKey(...).public_key()
-    node_type: NodeType = field(NodeType.PEER) # OR NodeType.SERVER
+    node_type: NodeType = NodeType.PEER # OR NodeType.SERVER
 
 @dataclass
 class VirtualFabricNetwork:

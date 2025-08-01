@@ -3,4 +3,6 @@ sqlmodel
 websockets
 uvicorn
 typer
+httpx
+pydantic
 # git+https://github.com/arnavdas88/wireguard_py.git@main
