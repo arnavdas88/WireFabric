@@ -1,7 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address, IPv4Network, IPv6Network
-from wireguard_py.pythonic import WireGuardInterface
-from wireguard_py.contrib.WireguardKey import WireguardKey
-from wireguard_py.wireguard_common import Endpoint, Peer
+from wireguard_py.interface import WireGuardInterface
+from wireguard_py.keys import WireguardKey
+from wireguard_py.peers import Endpoint, Peer
 
 import time
 

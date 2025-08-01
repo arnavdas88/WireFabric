@@ -1,0 +1,36 @@
+services:
+  fabric_node_1:
+    build:
+      context: /workspace/WireGenie/
+      dockerfile: environment/wireguard_fabric/Dockerfile
+    volumes:
+      - /workspace/WireGenie:/wireguard_fabric
+    ports:
+      - 8000:8000
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    networks:
+      internet:
+        ipv4_address: 172.30.30.2
+
+  # fabric_node_2:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   entrypoint: []
+  #   ports:
+  #     - 8000:8000
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - SYS_MODULE
+  #   networks:
+  #     - internet
+
+networks:
+  internet:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.30.0/24
+          gateway: 172.30.30.1

@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # stdin_open: true # Keep stdin open even if not attached
-    # tty: true        # Allocate a pseudo-TTY
     container_name: node_wg_1
     cap_add:
       - NET_ADMIN
@@ -21,8 +19,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # stdin_open: true # Keep stdin open even if not attached
-    # tty: true        # Allocate a pseudo-TTY
     container_name: node_wg_2
     cap_add:
       - NET_ADMIN

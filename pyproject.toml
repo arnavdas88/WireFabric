@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools", "cython"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wire-fabric"
+readme = "README.md"
+version="0.0.1"
+authors = [
+  { name="Arnav Das", email="arnav.das88@gmail.com" },
+  { name="Sumeet Jana", email="sumeetjana@icloud.com" },
+]
+description = "A High Availability Wireguard Fabric"
+requires-python = ">=3"
+dependencies = ["fastapi[all]", "typer", ]
+classifiers = [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Environment :: No Input/Output (Daemon)",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: GNU AFFERO",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+]

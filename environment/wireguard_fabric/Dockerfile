@@ -14,6 +14,10 @@ RUN python3 setup.py build
 RUN python3 setup.py install
 RUN pip install -e . --break-system-packages
 
-WORKDIR /config
+# COPY /workspace/WireGenie/* /wireguard_fabric/
+# /workspace/WireGenie/environment/wireguard_fabric
+COPY ./ /fabric
+WORKDIR /fabric
+RUN pip install -e . --break-system-packages
 
-ENTRYPOINT [ "python3", "sample.py" ]
+ENTRYPOINT [ "python3", "-m", "fastapi", "run", "--host", "0.0.0.0", "--port", "8000", "src/wire_fabric/daemon/server.py" ]
