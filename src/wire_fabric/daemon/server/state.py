@@ -10,6 +10,8 @@ class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if is_dataclass(o):
             return asdict(o)
+        if type(o) is bytes:
+            return o.decode()
         else:
             return str(o)
         return super().default(o)
@@ -49,6 +51,7 @@ class DistributedState:
         return json.dumps(asdict(self), cls=EnhancedJSONEncoder, sort_keys=True)
 
     def merge(self, incoming: Dict):
+        print(incoming)
         # Merge network
         if self.network != ipaddress.ip_network(incoming.get("network")):
             # TODO: Need to define the behaviour for network change
@@ -69,4 +72,5 @@ class DistributedState:
         # Merge keys
         for k, v in incoming.get("node_keys", {}).items():
             if k not in self.node_keys:
+                print(f"{type(v) = }, {v}")
                 self.node_keys[k] = WireguardKey(**v)
