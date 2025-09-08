@@ -16,13 +16,13 @@ def main():
 
     wg0 = WireGuardInterface(
         "wg-1101", 
-        endpoint=node_2_endpoint,
-        ip=node_2_endpoint.ip,
+        endpoint=node_2_endpoint,   # 10.10.10.2:40262
+        ip=node_2_endpoint.ip,      # 10.10.10.2:40262
         cidr=network,
         keypair=node_2_key,
         peers={
             "p1": Peer(
-                interface=node_1_endpoint,
+                interface=node_1_endpoint,  # 172.30.30.2:40261
                 allowed_ips=[ network ],
                 privkey=str(node_1_key.private_key()), # Not Compulsory
                 pubkey=str(node_1_key.public_key()), 

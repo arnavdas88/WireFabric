@@ -14,7 +14,7 @@ from dataclasses import asdict
 from typing import List, Mapping, Optional
 
 from wire_fabric.daemon.ifmanager import InterfaceManager
-from wire_fabric.daemon.server.state import DistributedState, ServerStatus, WeightedEndpoint
+from wire_fabric.daemon.server.state import DistributedState, ServerStatus, WeightedEndpoint, NodeInformation
 from wire_fabric.daemon.pyroute_worker import IPRouteWorker
 from wire_fabric.daemon.server.model import EndpointModel, KeyModel, WireguardKeyModel, \
                                             RegisterKeyModel, \
@@ -69,6 +69,7 @@ class APIServer:
             print(f"[WARN] Failed to pull from {url}: {e}")
             raise e
 
+    # State Reconsolidation
     async def sync_with_all_management(self, ):
         """Pull state from all management nodes, and push only if state changes."""
         old_state_serialized = self.shared_state.to_json()
@@ -103,14 +104,35 @@ class APIServer:
                     continue
                 url = f"http://{ep.ip}:{ep.port}/state"
                 try:
-                    async with httpx.AsyncClient(timeout=3) as client:
+                    async with httpx.AsyncClient(timeout=10) as client:
                         resp = await client.post(url, json=json.loads(self.shared_state.to_json()))
                         if resp.status_code != 200:
                             print(resp.json())
+                        else:
+                            print(f"[INFO] Pushed from node {self.shared_state.name} to node {name}")
                 except Exception as e:
                     print(f"[WARN] Failed to push to {url}: {e}")
         else:
             print("[INFO] No state change — no push necessary.")
+
+    async def broadcast_request_for_activity_reconciliation(self, ):
+        management_nodes = list(self.shared_state.management.keys()).copy()
+        for name in management_nodes:
+            ep = self.shared_state.management[name]
+            if name == self.shared_state.name:
+                # Skip when pulling from self
+                continue
+            url = f"http://{ep.ip}:{ep.port}/reconcile_state"
+            try:
+                async with httpx.AsyncClient(timeout=3) as client:
+                    resp = await client.get(url)
+                    if resp.status_code == 200:
+                        received_state_serialized = resp.json()
+                        received_state_serialized = json.dumps(received_state_serialized, sort_keys=True)
+                    else:
+                        print(f"[WARN] Failed to reconcile state for {url}: Status Code {resp.status_code}")
+            except Exception as e:
+                print(f"[WARN] Failed to reconcile state for {url}: {e}")
 
     def get_next_available_ip(self, used_pool:List[IPv4Address | IPv6Address]) -> IPv4Address | IPv6Address:
         for ip in self.shared_state.network.hosts():
@@ -142,11 +164,92 @@ class APIServer:
             self._running = False
             print("[APIServer] Stopped.")
 
+    def _prepare(self, ):
+        # Allocate IP Address if not allocated before
+        if not self.shared_state.private_ip.ip:
+            # Get current pool of used ip address
+            used_pool = [ipaddress.ip_address(ip) for ip in self.shared_state.node_keys.keys()]
+            allocated_private_ip = self.get_next_available_ip(used_pool)
+            self.shared_state.private_ip.ip = allocated_private_ip
+            self.shared_state.master_nodes[self.shared_state.name].ip = allocated_private_ip
+
+        # Allocate Node Key if not allocated before
+        if str(self.shared_state.private_ip.ip) not in self.shared_state.node_keys:
+            self.shared_state.node_keys[str(allocated_private_ip)] = WireguardKey.generate() # WireguardKey(b"WireguardKey")
+
+        # If wireguard interface already exists and is up
+        if self.iface and self.iface.status:
+            self.iface.bring_down()
+
+        all_operational_nodes: List[NodeInformation] = list(self.shared_state.get_other_operational_masters())
+        gateway: Optional[NodeInformation] = None
+
+        # Select first system as gateway
+        # TODO: Make it more flexible, by checking if the 
+        # system is operational and accessible or not.
+        if all_operational_nodes:
+            gateway = all_operational_nodes[0]
+        
+        print(f"[INFO] Gateway is {gateway}")
+
+        # Create wireguard interface
+        self.iface = WireGuardInterface(
+            interface_name = self.shared_state.name,
+            cidr = self.shared_state.network,
+            ip = self.shared_state.private_ip.ip, # Subnetwork Ip
+            keypair=self.shared_state.node_keys[str(self.shared_state.private_ip.ip)],
+            endpoint=Endpoint(
+                ip = self.shared_state.private_ip.ip, # This will become the public ip address of the node.
+                # ip = IPv4Address("172.30.30.11"), # This will become the public ip address of the node.
+                port = self.shared_state.master_nodes[self.shared_state.name].port # Data Port
+            ),
+            ipr=self.ipr # IpRoute()
+        )
+        print(f"FOR NODE {self.shared_state.name}:")
+        print(f"\tendpoint = Endpoint(ip = {self.iface.endpoint.ip}, port = {self.iface.endpoint.ip})")
+        print(f"\tip = {self.shared_state.private_ip.ip}")
+
+        # Add Peers
+        for node_vip, node_wg_key in self.shared_state.node_keys.items():
+            if node_vip == str(self.shared_state.private_ip.ip):
+                continue
+
+            node_info = self.shared_state.get_by_vip(node_vip)
+            peer_ip = node_info.data.ip
+            if node_vip == str(gateway.vip):
+                # When dealing with gateway, use public ip
+                # instead of private ip
+                peer_ip = gateway.management.ip
+
+            print("\n")
+            print("KEYS : ")
+            print(f"\tNODE: {node_vip}")
+            print(f"\tPEER IP (type({type(peer_ip)})): {peer_ip}")
+            print(f"\tPRIVATE KEY: {node_wg_key}")
+            print(f"\tPUBLIC KEY: {node_wg_key.public_key()}")
+            print("\n")
+
+            peer = Peer(
+                    interface=Endpoint(
+                        ip=ipaddress.ip_address(peer_ip),
+                        port=node_info.data.port
+                    ),
+                    pubkey=str(node_wg_key.public_key()),
+                    allowed_ips=[self.shared_state.network],
+                )
+            print(f"\tPEER = {peer.interface.ip}:{peer.interface.port}")
+            # TODO : The dataclass Peer has no attribute name. So change the add_peer function in wireguard_py
+            peer.name = node_info.name
+            self.iface.add_peer(peer)
+
 class FabricAPIServer(APIServer):
 
     def register(self, ):
         self.app.get("/")(self.index)
         self.app.get("/state")(self.get_state)
+        self.app.get("/reconcile_state")(self.reconcile_state)
+        self.app.get("/debug_peers")(self.debug_peers)
+
         self.app.post("/state")(self.post_state)
         self.app.post("/register/master")(self.register_master)
         self.app.post("/register/management")(self.register_management)
@@ -195,43 +298,56 @@ class FabricAPIServer(APIServer):
     
     async def manage(self, management: ManagementModel):
         # Start or stop Wireguard Server and change the state
-        if management.action == Actions.START:
-            # Allocate IP Address if not allocated before
-            if not self.shared_state.private_ip.ip:
-                # Get current pool of used ip address
-                used_pool = [ipaddress.ip_address(ip) for ip in self.shared_state.node_keys.keys()]
-                allocated_private_ip = self.get_next_available_ip(used_pool)
-                self.shared_state.private_ip.ip = allocated_private_ip
-            # Allocate Node Key if not allocated before
-            if str(self.shared_state.private_ip.ip) not in self.shared_state.node_keys:
-                self.shared_state.node_keys[str(allocated_private_ip)] = WireguardKey.generate() # WireguardKey(b"WireguardKey")
+        match management.action:
+            case Actions.START:
+                self._prepare()
+                # Bring the interface up
+                self.iface.bring_up()
+                # Set status to active
+                self.shared_state.status = ServerStatus.ACTIVE
+            case Actions.STOP:
+                # If wireguard interface already exists and is up
+                if self.iface and self.iface.status:
+                    self.iface.bring_down()
+                # Set status to inactive
+                self.shared_state.status = ServerStatus.INACTIVE
+            case RESTART:
+                # If wireguard interface already exists and is up
+                if self.iface and self.iface.status:
+                    self.iface.bring_down()
+                # Set status to inactive
+                self.shared_state.status = ServerStatus.INACTIVE
+                
+                # Time to restart
+                self._prepare()
+                # Bring the interface up
+                self.iface.bring_up()
+                # Set status to active
+                self.shared_state.status = ServerStatus.ACTIVE
 
-            # If wireguard interface already exists and is up
-            if self.iface and self.iface.status:
-                self.iface.bring_down()
-            # Create wireguard interface
-            self.iface = WireGuardInterface(
-                interface_name = self.shared_state.name,
-                cidr = self.shared_state.network,
-                ip = self.shared_state.private_ip.ip, # Subnetwork Ip
-                keypair=self.shared_state.node_keys[str(self.shared_state.private_ip.ip)],
-                endpoint=Endpoint(
-                    ip = None, # This will become the public ip address of the node.
-                    port = self.shared_state.master_nodes[self.shared_state.name].port # Data Port
-                ),
-                ipr=self.ipr # IpRoute()
-            )
-            self.iface.bring_up()
-            # Set status to active
-            self.shared_state.status = ServerStatus.ACTIVE
-        if management.action == Actions.STOP:
-            # If wireguard interface already exists and is up
-            if self.iface and self.iface.status:
-                self.iface.bring_down()
-            # Set status to inactive
-            self.shared_state.status = ServerStatus.INACTIVE
-        # self.shared_state.master_nodes
+
         await self.sync_with_all_management()
+        await self.broadcast_request_for_activity_reconciliation()
         return {"status": "ok"}
 
-    
+    async def debug_peers(self, ):
+        return self.iface.peers    
+
+    async def reconcile_state(self, ):
+        await self.sync_with_all_management()
+
+        # If wireguard interface already exists and is up
+        if self.iface and self.iface.status:
+            self.iface.bring_down()
+        # Set status to inactive
+        self.shared_state.status = ServerStatus.INACTIVE
+        
+        # Time to restart
+        self._prepare()
+        # Bring the interface up
+        self.iface.bring_up()
+        # Set status to active
+        self.shared_state.status = ServerStatus.ACTIVE
+
+        await self.sync_with_all_management()
+        return {"status": "ok"}

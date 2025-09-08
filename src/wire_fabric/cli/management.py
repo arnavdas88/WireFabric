@@ -16,7 +16,7 @@ from wire_fabric.daemon.pyroute_worker import IPRouteWorker
 app = typer.Typer(help="Management CLI for Fabric", no_args_is_help=True)
 
 @app.command()
-def management_server(
+def server(
     name: Optional[str] = typer.Option(None, "--name", help="Name of the host. Default is the system hostname"),
     host: str = typer.Option("127.0.0.1", "--host", help="Host IP to listen to"),
     port: int  = typer.Option(8000, "--port", help="Port to listen to"),
@@ -62,22 +62,22 @@ def management_server(
         port=port, 
     )
     server.shared_state.master_nodes[shared_state.name] = WeightedEndpoint(
-        ip=management_public_ip, 
+        ip=network_ip, 
         port=data_port, 
     )
     server.up()
 
     # Add management servers
     if management_servers:
-        with httpx.Client(timeout=3) as client:
+        with httpx.Client(timeout=30) as client:
             for servers in management_servers:
                 server_host, server_port = servers.split(":")
                 response = client.post(f"http://{host}:{port}/register/management", json={"ip": server_host, "port": int(server_port)})
                 if response.status_code == 200:
                     typer.echo("Joined management server.")
-                    print(f"http://{host}:{port}/register/management")
-                    print({"ip": server_host, "port": int(server_port)})
-                    print(response.json())
+                    # print(f"http://{host}:{port}/register/management")
+                    # print({"ip": server_host, "port": int(server_port)})
+                    # print(response.json())
                 else:
                     typer.echo(response.json())
     # Activate the data port

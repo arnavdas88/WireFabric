@@ -35,6 +35,7 @@ class SharedStateModel(BaseModel):
 class Actions(StrEnum):
     START = "Start"
     STOP = "Stop"
+    RESTART = "Restart"
 
 class ManagementModel(BaseModel):
     action: Actions

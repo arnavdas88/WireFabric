@@ -4,6 +4,7 @@ RUN apt-get update -y
 RUN apt-get install python3-dev python3-pip git -y
 RUN apt-get install build-essential gcc make iproute2 iputils-ping -y
 RUN pip install Cython --break-system-packages
+RUN apt-get install wireguard wireguard-tools -y
 
 # WireguardPy
 RUN git clone https://github.com/arnavdas88/wireguard_py
@@ -15,6 +16,8 @@ RUN python3 setup.py build_ext --inplace
 RUN python3 setup.py build
 RUN python3 setup.py install
 RUN pip install -e . --break-system-packages
+
+RUN pip install "fastapi[all]" typer --break-system-packages
 
 # WireguardFabric
 # COPY /workspace/WireGenie/* /wireguard_fabric/

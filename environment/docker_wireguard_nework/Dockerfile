@@ -4,6 +4,8 @@ RUN apt-get update -y
 RUN apt-get install python3-dev python3-pip git -y
 RUN apt-get install build-essential gcc make iproute2 iputils-ping -y
 RUN pip install Cython --break-system-packages
+RUN apt-get install wireguard wireguard-tools -y
+
 RUN git clone https://github.com/arnavdas88/wireguard_py
 
 WORKDIR /wireguard_py

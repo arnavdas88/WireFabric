@@ -3,11 +3,11 @@ services:
     build:
       context: /workspace/WireGenie/
       dockerfile: environment/wireguard_fabric/Dockerfile
-    entrypoint: [ "python3", "-m", "wire_fabric", "management-server", "--name", "newton", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.11"]
+    entrypoint: [ "python3", "-m", "wire_fabric", "management", "server", "--name", "newton", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.11"]
     ports:
       - 8001:8001
     volumes:
-      - /workspace/WireGenie:/wireguard_fabric
+      - ./:/wire_fabric
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -19,9 +19,11 @@ services:
     build:
       context: /workspace/WireGenie/
       dockerfile: environment/wireguard_fabric/Dockerfile
-    entrypoint: [ "python3", "-m", "wire_fabric", "management-server", "--name", "venus", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.12", "--management-servers-list", "172.30.30.11:8001"]
+    entrypoint: [ "python3", "-m", "wire_fabric", "management", "server", "--name", "venus", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.12", "--management-servers-list", "172.30.30.11:8001"]
+    ports:
+      - 8002:8001
     volumes:
-      - /workspace/WireGenie:/wireguard_fabric
+      - ./:/wire_fabric
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -35,11 +37,13 @@ services:
     build:
       context: /workspace/WireGenie/
       dockerfile: environment/wireguard_fabric/Dockerfile
-    entrypoint: [ "python3", "-m", "wire_fabric", "management-server", "--name", "emperor", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.13"]
+    entrypoint: [ "python3", "-m", "wire_fabric", "management", "server", "--name", "emperor", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.13"]
     # Then run the below code to join fabric_management_1
     # /usr/bin/env /home/gitpod/.pyenv/shims/python -m wire_fabric client join --host 172.30.30.13 --port 8001 --token eyJpcCI6ICIxNzIuMzAuMzAuMTEiLCAicG9ydCI6IDgwMDF9
+    ports:
+      - 8003:8001
     volumes:
-      - /workspace/WireGenie:/wireguard_fabric
+      - ./:/wire_fabric
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -54,7 +58,7 @@ services:
   #     context: /workspace/WireGenie/
   #     dockerfile: environment/wireguard_fabric/Dockerfile
   #   volumes:
-  #     - /workspace/WireGenie:/wireguard_fabric
+  #     - ./:/wire_fabric
   #   ports:
   #     - 8000:8000
   #   cap_add:
@@ -69,7 +73,7 @@ services:
   #     context: /workspace/WireGenie/
   #     dockerfile: environment/wireguard_fabric/Dockerfile
   #   volumes:
-  #     - /workspace/WireGenie:/wireguard_fabric
+  #     - ./:/wire_fabric
   #   ports:
   #     - 8000:8000
   #   cap_add:
