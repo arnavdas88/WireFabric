@@ -1,4 +1,12 @@
-When `docker compose up`, 3 Management servers start, with two of them already forming a cluster, and one independent server. Run the following command to join the independent server (`172.30.30.13`) to the cluster.
+When `docker compose up`, 3 Management servers start, with two of them already forming a cluster, and one independent server. 
+
+One can now monitor the state of the cluster using the REST-API, through the following command:
+
+```sh
+curl -X 'GET' 'http://127.0.0.1:8001/state' -H 'accept: application/json' | jq .
+```
+
+Run the following command to join the independent server (`172.30.30.13`) to the cluster.
 
 ```sh
 python -m wire_fabric client join --host 172.30.30.13 --port 8001 --token eyJpcCI6ICIxNzIuMzAuMzAuMTEiLCAicG9ydCI6IDgwMDF9
