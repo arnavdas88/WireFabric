@@ -1,5 +1,5 @@
 ## Plan
 
-- [ ] High Availability
-- [ ] Load Balancing
-- [ ] Performance & Monitoring
+- [ ] High Availability (Fallback Node, VRRP Keepalived, ...)
+- [ ] Load Balancing (Seperated Gateway Nodes)
+- [ ] Performance & Monitoring (Prometheus)
