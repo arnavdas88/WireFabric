@@ -42,10 +42,10 @@ python -m pip install -e . --break-system-packages
 ```
 
 > [!NOTE]
-> For Management and Peer nodes, follow the steps in the Dockerfile `.../environment/wireguard_fabric/Dockerfile`
+> For Management and Peer nodes, follow the steps in the Dockerfile [`.../environment/wireguard_fabric/Dockerfile`](environment/wireguard_fabric/Dockerfile)
 
 
 ## ⚙️ Fast Setup and Testing
 
-For setting up testing environment, we use docker for our network orchestration. Refer to `environment/wireguard_fabric/Walkthorugh.md`
+For setting up testing environment, we use docker for our network orchestration. Refer to [`environment/wireguard_fabric/Walkthorugh.md`](environment/wireguard_fabric/Walkthorugh.md)
 
