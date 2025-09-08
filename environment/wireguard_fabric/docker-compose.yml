@@ -1,7 +1,7 @@
 services:
   fabric_management_1:
     build:
-      context: /workspace/WireGenie/
+      context: ../../
       dockerfile: environment/wireguard_fabric/Dockerfile
     entrypoint: [ "python3", "-m", "wire_fabric", "management", "server", "--name", "newton", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.11"]
     ports:
@@ -17,7 +17,7 @@ services:
 
   fabric_management_2:
     build:
-      context: /workspace/WireGenie/
+      context: ../../
       dockerfile: environment/wireguard_fabric/Dockerfile
     entrypoint: [ "python3", "-m", "wire_fabric", "management", "server", "--name", "venus", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.12", "--management-servers-list", "172.30.30.11:8001"]
     ports:
@@ -35,7 +35,7 @@ services:
 
   fabric_management_3:
     build:
-      context: /workspace/WireGenie/
+      context: ../../
       dockerfile: environment/wireguard_fabric/Dockerfile
     entrypoint: [ "python3", "-m", "wire_fabric", "management", "server", "--name", "emperor", "--host", "0.0.0.0", "--port", "8001", "--network", "10.0.0.0/24", "--public-ip", "172.30.30.13"]
     # Then run the below code to join fabric_management_1
@@ -55,7 +55,7 @@ services:
 
   # fabric_peer_1:
   #   build:
-  #     context: /workspace/WireGenie/
+  #     context: ../../
   #     dockerfile: environment/wireguard_fabric/Dockerfile
   #   volumes:
   #     - ./:/wire_fabric
@@ -70,7 +70,7 @@ services:
 
   # fabric_peer_2:
   #   build:
-  #     context: /workspace/WireGenie/
+  #     context: ../../
   #     dockerfile: environment/wireguard_fabric/Dockerfile
   #   volumes:
   #     - ./:/wire_fabric
