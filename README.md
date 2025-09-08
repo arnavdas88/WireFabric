@@ -1,169 +1,51 @@
-# WireGenie – WireGuard Management Tool
+# WireFabric – WireGuard Fabric Management Tool
 
-**WireGenie** is a Python-based tool that simplifies the management of a WireGuard VPN server on Linux systems. It includes both a **command-line interface (CLI)** and a **Flask-based Web UI** for easy administration.
+**WireFabric** is a Python-based tool that simplifies the management of a WireGuard VPN for Linux systems. It includes both a **client command-line interface** and a **Web API** for easy administration.
 
 ---
 
 ## 🚀 Features
 
-### ✅ CLI (`wg.py`)
-- Add, remove, and list WireGuard clients.
-- Automatically restarts the WireGuard service after changes.
-- Ensures configuration validity before applying.
-- Brings down `wg0` on exit or termination.
-- Optionally displays QR code on the terminal (if `qrencode` is installed).
+### Client - Control Plane CLI
 
-### ✅ Web UI (`web_ui.py`)
-- Simple Web Dashboard built with **Flask**.
-- Protected by **Basic Authentication** (username/password).
-- Easily **add or remove clients** from the browser.
-- Automatically displays a **QR code** for newly added clients.
-- Accessible via local network or public server IP.
+Assuming one of the manage server is running on `xxx.xxx.xxx.xxx:yyyy`, 
+
+Show information of the cluster and nodes
+```sh
+$ python -m wire_fabric client info --host xxx.xxx.xxx.xxx --port yyyy
+
+Name :  ...
+Status :  Active / Inactive
+Network :  10.0.0.0/24
+Total master servers :  3
+        alice
+        bob
+        ...
+Total management servers :  3
+        alice
+        bob
+        ...
+Total nodes :  3
+        10.0.0.1
+        10.0.0.2
+        ...
+```
+
 
 ---
 
-## 📦 Requirements
+## 📦 Requirements & Setup
 
-### 🔧 System Dependencies
-
-Install these on Ubuntu/Debian:
-
-```bash
-sudo apt update
-sudo apt install wireguard iptables curl iproute2 qrencode
+For Client CLI Setup, run
+```sh
+python -m pip install -e . --break-system-packages
 ```
 
-### 🐍 Python Dependencies
+> [!NOTE]
+> For Management and Peer nodes, follow the steps in the Dockerfile [`.../environment/wireguard_fabric/Dockerfile`](environment/wireguard_fabric/Dockerfile)
 
-```bash
-pip3 install flask flask-httpauth
-```
 
-> ✅ Ensure Python 3.6+ is installed:
-> ```bash
-> python3 --version
-> ```
+## ⚙️ Fast Setup and Testing
 
----
+For setting up testing environment, we use docker for our network orchestration. Refer to [`environment/wireguard_fabric/Walkthorugh.md`](environment/wireguard_fabric/Walkthorugh.md)
 
-## 📁 Project Structure
-
-```
-WireGenie/
-├── wg.py              # CLI management tool
-├── web_ui.py          # Flask Web UI with Basic Auth + QR support
-└── templates/
-    ├── index.html     # Main dashboard
-    └── qr.html        # QR display page for clients
-```
-
----
-
-## 🔧 Setup & Usage
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/0x7D4/WireGenie.git
-cd WireGenie
-```
-
-### 2. Disable systemd `wg-quick@wg0` (Recommended)
-
-To prevent conflicts with the script:
-
-```bash
-sudo systemctl disable wg-quick@wg0
-sudo systemctl stop wg-quick@wg0
-```
-
----
-
-## ⚙️ CLI Usage
-
-### Start the CLI Menu
-
-```bash
-sudo python3 wg.py
-```
-
-### Menu Options
-
-```
-1. Add a new client
-2. Remove an existing client
-3. List clients
-4. Exit
-```
-
----
-
-## 🌐 Web UI Usage
-
-### 1. Start the Flask Server
-
-```bash
-sudo python3 web_ui.py
-```
-
-### 2. Open in Your Browser
-
-```
-http://<your-server-ip>:5000
-```
-
-### 3. Login Credentials (Default)
-
-```
-Username: admin
-Password: admin
-```
-
-> 🔒 You can change this inside `web_ui.py` in the `users` dictionary.
-
----
-
-## 📸 QR Code Display
-
-After adding a client through the Web UI, you are redirected to a page that shows the client’s config as a **QR code**.  
-You can scan it using the **WireGuard mobile app** for easy setup.
-
----
-
-## 📂 Configuration Paths
-
-| Component             | Path                                |
-|-----------------------|-------------------------------------|
-| Server Config         | `/etc/wireguard/wg0.conf`           |
-| Client Configs        | `/etc/wireguard/clients/<name>.conf`|
-| Server Private Key    | `/etc/wireguard/server_private.key` |
-| Server Public Key     | `/etc/wireguard/server_public.key`  |
-
----
-
-## 🧪 Example CLI Session
-
-```bash
-$ sudo python3 wg.py
-What would you like to do?
-1. Add a new client
-2. Remove an existing client
-3. List clients
-4. Exit
-Enter choice [1-4]: 1
-Enter client name: alice
-✅ Client alice added and service restarted.
-```
-
----
-
-## 🔐 Security Notes
-
-- The Flask Web UI is protected with **Basic Authentication**.
-
----
-
-## 📌 To Do / Coming Soon
-
-- `.env` support for environment-based configuration
----
