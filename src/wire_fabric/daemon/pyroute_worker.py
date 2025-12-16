@@ -1,5 +1,5 @@
 from multiprocessing import Process, Pipe
-from pyroute2 import IPRoute
+from pyroute2 import IPRoute, IPDB
 import traceback
 import sys
 
@@ -45,6 +45,19 @@ class IPRouteWorker:
 
     def link_lookup(self, *args, **kwargs):
         return self.call("link_lookup", *args, **kwargs)
+    
+    def interface_names(self, *args, **kwargs):
+        # Get all network interfaces (links)
+        links = self.call("link", *args, **kwargs)
+        
+        interface_names = []
+        for link in links:
+            # Extract the interface name (IFLA_IFNAME) from the attributes
+            name = link.get_attr('IFLA_IFNAME')
+            if name:
+                interface_names.append(name)
+                
+        return interface_names
 
     def close(self):
         self.parent_conn.send('exit')

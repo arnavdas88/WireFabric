@@ -1,41 +1,20 @@
 from pydantic import BaseModel
-from enum import StrEnum
 from typing import List, Mapping, Optional
+from ipaddress import IPv4Network, IPv4Address
+
 from wireguard_py.keys import WireguardKey
-from wire_fabric.daemon.server.state import ServerStatus
 
-# --- Pydantic for Input Validation ---
 
-class EndpointModel(BaseModel):
-    ip: Optional[str]
-    port: int
-
-class KeyModel(BaseModel):
-    private: str
-    public: Optional[str] = None
-
-class WireguardKeyModel(BaseModel):
-    keydata: str
-
-class RegisterKeyModel(BaseModel):
-    identifier: str  # str(ip) or str(endpoint)
-    key: KeyModel
-
-class SharedStateModel(BaseModel):
-    # Static Variables
-    network: str
+class PeerRequest(BaseModel):
     name: str
-    status: ServerStatus
-    private_ip: Optional[EndpointModel]
+    pubkey: str
+    endpoint_ip: Optional[IPv4Address]
+    endpoint_port: int
+    allowed_cidr: IPv4Network
 
-    master_nodes: Mapping[str, EndpointModel]
-    management: Mapping[str, EndpointModel]
-    node_keys: Mapping[str, WireguardKeyModel]
-
-class Actions(StrEnum):
-    START = "Start"
-    STOP = "Stop"
-    RESTART = "Restart"
-
-class ManagementModel(BaseModel):
-    action: Actions
+class InterfaceRequest(BaseModel):
+    ip: IPv4Address
+    cidr: IPv4Network
+    listen_port: int
+    name: Optional[str] = None
+    private_key: Optional[str] = None

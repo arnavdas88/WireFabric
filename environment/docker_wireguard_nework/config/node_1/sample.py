@@ -24,7 +24,7 @@ def main():
             "p1": Peer(
                 interface=node_2_endpoint,  # 10.10.10.2:40262
                 allowed_ips=[ network ],
-                privkey=str(node_2_key.private_key()), # Not Compulsory
+                # privkey=str(node_2_key.private_key()), # Not Compulsory
                 pubkey=str(node_2_key.public_key()), 
             )
         }

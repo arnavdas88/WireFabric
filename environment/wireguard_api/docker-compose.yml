@@ -1,0 +1,56 @@
+services:
+  node_1:
+    build:
+      context: ../../
+      dockerfile: environment/wireguard_api/Dockerfile
+    container_name: node_1
+    hostname: node_1
+    ports:
+      - 8001:8000
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ../../:/fabric
+    networks:
+      internet:
+        ipv4_address: 172.30.30.101
+
+  node_2:
+    build:
+      context: ../../
+      dockerfile: environment/wireguard_api/Dockerfile
+    container_name: node_2
+    hostname: node_2
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ../../:/fabric
+    networks:
+      internet:
+        ipv4_address: 172.30.30.102
+
+  node_3:
+    build:
+      context: ../../
+      dockerfile: environment/wireguard_api/Dockerfile
+    container_name: node_3
+    hostname: node_3
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ../../:/fabric
+    networks:
+      internet:
+        ipv4_address: 172.30.30.103
+
+networks:
+  internet:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.30.0/24
+          gateway: 172.30.30.1
+
