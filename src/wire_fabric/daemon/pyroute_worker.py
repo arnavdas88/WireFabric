@@ -1,3 +1,4 @@
+import ipaddress
 from multiprocessing import Process, Pipe
 from pyroute2 import IPRoute, IPDB
 import traceback
@@ -48,7 +49,7 @@ class IPRouteWorker:
     
     def interface_names(self, *args, **kwargs):
         # Get all network interfaces (links)
-        links = self.call("link", *args, **kwargs)
+        links = self.call("link", "dump", *args, **kwargs)
         
         interface_names = []
         for link in links:
@@ -58,6 +59,12 @@ class IPRouteWorker:
                 interface_names.append(name)
                 
         return interface_names
+
+    def get_routes(self, *args, **kwargs):
+        return self.call("get_routes", *args, **kwargs)
+    
+    def get_links(self, *args, **kwargs):
+        return self.call("get_links", *args, **kwargs)
 
     def close(self):
         self.parent_conn.send('exit')
