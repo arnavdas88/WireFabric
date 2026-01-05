@@ -1,6 +1,9 @@
 
+from ipaddress import IPv6Address, IPv6Network
 from typing import Dict, List
 from fastapi import HTTPException, Depends
+
+from pyroute2.netlink.rtnl import rt_scope, rt_proto
 
 from wireguard_py.keys import WireguardKey
 from wireguard_py.peers import Endpoint, Peer
@@ -28,6 +31,7 @@ class FabricAPIServer(APIServer):
 
         # Route
         self.app.get("/routes", dependencies=[Depends(require_role("admin"))], response_model=List[RouteDefinition])(self.get_routes)
+        self.app.post("/routes", dependencies=[Depends(require_role("admin"))], response_model=RouteDefinition)(self.create_routes)
 
 
     # --- API Endpoints ---
@@ -72,13 +76,18 @@ class FabricAPIServer(APIServer):
             "peers": list(wg.peers.keys())
         }
 
-    def delete_interface(self, name: str):
+    def delete_interface(self, name: str, delete: bool):
         wg = self.interfaces.get(name)
         if not wg:
             raise HTTPException(404, "Interface not found")
 
-        wg.bring_down()
-        return {"status": "down", "interface": name}
+
+        if delete:
+            self.interfaces.remove(name)
+        else:
+            self.interfaces.down(name)
+
+        return {"status": wg.status, "interface": name}
 
     # --- Peers ---
     def add_peer(self, name: str, req: PeerRequest):
@@ -124,4 +133,51 @@ class FabricAPIServer(APIServer):
 
         return serialized_routes
 
+    def create_routes(self, route: RouteDefinition):
+        
+        # Resolve interface index
+        links = self.ipr.link_lookup(ifname=route.interface)
+        if not links:
+            raise ValueError(f"Interface '{route.interface}' not found")
+        ifindex = links[0]
 
+        # Determine IP family
+        if isinstance(route.dst, IPv6Network) or isinstance(route.gateway, IPv6Address):
+            family = 10  # AF_INET6
+        else:
+            family = 2   # AF_INET
+
+        # Base route attributes
+        kwargs = {
+            "family": family,
+            "oif": ifindex,
+        }
+
+        # Destination
+        if route.dst:
+            kwargs["dst"] = str(route.dst.network_address)
+            kwargs["dst_len"] = route.dst.prefixlen
+        else:
+            kwargs["dst"] = "default"
+            kwargs["dst_len"] = 0
+
+        # Preferred source
+        if route.src:
+            kwargs["src"] = str(route.src.network_address)
+
+        # Gateway (skip for link routes)
+        if route.gateway and not route.is_link:
+            kwargs["gateway"] = str(route.gateway)
+
+        # Protocol
+        if route.proto:
+            kwargs["proto"] = rt_proto.get(route.proto, rt_proto["static"])
+
+        # Scope
+        if route.scope:
+            kwargs["scope"] = rt_scope.get(route.scope, rt_scope["universe"])
+
+        # Create route
+        # self.ipr.route("add", **kwargs)
+
+        return route
