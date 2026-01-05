@@ -1,5 +1,7 @@
 PYTHON_ENV="/usr/bin/env /home/codespace/.python/current/bin/python"
 
+CWD="$PWD"
+
 # Installs Cython for WireguardPy Compilation
 $PYTHON_ENV -m pip install Cython --break-system-packages
 
@@ -16,4 +18,4 @@ $PYTHON_ENV setup.py install && \
 $PYTHON_ENV -m pip install -e . --break-system-packages
 
 # Installs WireFabric
-$PYTHON_ENV -m pip install -e . --break-system-packages
+cd $CWD && $PYTHON_ENV -m pip install -e . --break-system-packages
