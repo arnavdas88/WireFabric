@@ -1,5 +1,5 @@
 from pydantic import BaseModel, SecretStr
-from typing import Dict, List, Mapping, Optional
+from typing import Dict, List, Literal, Mapping, Optional
 from ipaddress import IPv4Network, IPv4Address, IPv6Network, IPv6Address
 from wireguard_py.peers import Endpoint, Peer
 from wireguard_py.keys import WireguardKey
@@ -18,15 +18,16 @@ class InterfaceRequest(BaseModel):
     name: Optional[str] = None
     private_key: Optional[str] = None
 
+RouteProto = Literal[ "unspec", "kernel", "boot", "static", "ra", "dhcp"]
+RouteScope = Literal[ "universe", "site", "link", "host", "nowhere", ]
+
 class RouteDefinition(BaseModel):
     src: IPv4Network | IPv6Network | None 
     dst: IPv4Network | IPv6Network | None
     gateway: IPv4Address | IPv6Address | None
     interface: str
-    is_default: bool
-    proto: str
-    scope: str
-    is_link: bool
+    proto: RouteProto
+    scope: RouteScope
 
 class WireGuardInterfaceDefination(BaseModel):
     name : str

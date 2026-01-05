@@ -60,9 +60,7 @@ def route_to_model(route, interfaces):
         ),
         "gateway": ipaddress.ip_address(gateway) if gateway else None,
         "interface": interfaces.get(oif),
-        "is_default": is_default,
         "proto": proto,
         "scope": scope,
-        "is_link": is_link
     }
     return RouteDefinition(**route_dict)
