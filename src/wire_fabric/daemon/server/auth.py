@@ -11,7 +11,7 @@ security = HTTPBasic()
 
 def load_users() -> Dict[str, Dict]:
     users = {}
-    raw = os.getenv("FABRIC_USERS", "")
+    raw = os.getenv("FABRIC_API_USERS", "")
     for entry in raw.split(","):
         if not entry.strip():
             continue
