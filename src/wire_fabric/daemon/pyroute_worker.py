@@ -41,6 +41,9 @@ class IPRouteWorker:
     def addr(self, *args, **kwargs):
         return self.call("addr", *args, **kwargs)
 
+    def route(self, *args, **kwargs):
+        return self.call("route", *args, **kwargs)
+
     def link(self, *args, **kwargs):
         return self.call("link", *args, **kwargs)
 

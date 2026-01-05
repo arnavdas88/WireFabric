@@ -26,8 +26,8 @@ class RouteDefinition(BaseModel):
     dst: IPv4Network | IPv6Network | None
     gateway: IPv4Address | IPv6Address | None
     interface: str
-    proto: RouteProto
-    scope: RouteScope
+    proto: RouteProto | None
+    scope: RouteScope | None
 
 class WireGuardInterfaceDefination(BaseModel):
     name : str

@@ -146,16 +146,11 @@ class FabricAPIServer(APIServer):
         # Base route attributes
         kwargs = {
             "family": family,
-            "oif": ifindex,
         }
 
         # Destination
         if route.dst:
-            kwargs["dst"] = str(route.dst.network_address)
-            kwargs["dst_len"] = route.dst.prefixlen
-        else:
-            kwargs["dst"] = "default"
-            kwargs["dst_len"] = 0
+            kwargs["dst"] = str(route.dst)
 
         # Preferred source
         if route.src:
@@ -174,6 +169,6 @@ class FabricAPIServer(APIServer):
             kwargs["scope"] = rt_scope.get(route.scope, rt_scope["universe"])
 
         # Create route
-        # self.ipr.route("add", **kwargs)
+        result = self.ipr.route("add", **kwargs)
 
         return route

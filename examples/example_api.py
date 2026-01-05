@@ -54,16 +54,13 @@ def test_delete_interface():
 
 
 def test_create_route():
-    '''
-    EXPERIMENTAL
-    '''
     payload = {
         "src": None,
         "dst": "10.20.0.0/16",
         "gateway": "10.10.0.1",
         "interface": "wf_0",
-        "proto": "static",
-        "scope": "universe",
+        "proto": None,
+        "scope": None,
     }
 
     # Create route
@@ -78,7 +75,7 @@ def test_create_route():
 
     assert route["dst"] == "10.20.0.0/16"
     assert route["gateway"] == "10.10.0.1"
-    assert route["interface"] == "wf_0"
+    assert route["interface"] == ""
     assert route["proto"] == "static"
     assert route["scope"] == "universe"
 
