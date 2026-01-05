@@ -65,4 +65,4 @@ def route_to_model(route, interfaces):
         "scope": scope,
         "is_link": is_link
     }
-    return Route(**route_dict)
+    return RouteDefinition(**route_dict)
