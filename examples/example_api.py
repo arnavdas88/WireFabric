@@ -81,7 +81,6 @@ def test_create_route():
     assert route["interface"] == "wf_0"
     assert route["proto"] == "static"
     assert route["scope"] == "universe"
-    assert route["is_link"] is False
 
     # Verify route exists
     with httpx.Client(auth=AUTH) as client:

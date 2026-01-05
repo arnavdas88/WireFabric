@@ -162,7 +162,7 @@ class FabricAPIServer(APIServer):
             kwargs["src"] = str(route.src.network_address)
 
         # Gateway (skip for link routes)
-        if route.gateway and not route.is_link:
+        if route.gateway:
             kwargs["gateway"] = str(route.gateway)
 
         # Protocol
