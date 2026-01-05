@@ -12,7 +12,7 @@ from wireguard_py.interface import WireGuardInterface
 from wire_fabric.daemon.server.auth import require_role
 from wire_fabric.daemon.server.base import APIServer
 from wire_fabric.daemon.server.model import InterfaceRequest, PeerRequest, RouteDefinition, WireGuardInterfaceDefination
-from wire_fabric.utils import validate_interface_name, route_to_model
+from wire_fabric.utils import validate_interface_name, route_to_model, interface_to_dict
 
 
 class FabricAPIServer(APIServer):
@@ -23,7 +23,7 @@ class FabricAPIServer(APIServer):
         # Interface
         self.app.get("/interfaces", dependencies=[Depends(require_role("admin", "operator", "viewer"))], response_model=List[WireGuardInterfaceDefination])(self.get_interfaces)
         self.app.post("/interfaces", dependencies=[Depends(require_role("admin"))])(self.create_interface)
-        self.app.get("/interfaces/{name}", dependencies=[Depends(require_role("admin", "operator", "viewer"))])(self.retrieve_interface)
+        self.app.get("/interfaces/{name}", dependencies=[Depends(require_role("admin", "operator", "viewer"))], response_model=WireGuardInterfaceDefination)(self.retrieve_interface)
         self.app.delete("/interfaces/{name}", dependencies=[Depends(require_role("admin"))])(self.delete_interface)
         
         self.app.post("/interfaces/{name}/peers", dependencies=[Depends(require_role("admin", "operator"))])(self.add_peer)
@@ -70,11 +70,7 @@ class FabricAPIServer(APIServer):
         if not wg:
             raise HTTPException(404, "Interface not found")
 
-        return {
-            "name": wg.name,
-            "status": wg.status,
-            "peers": list(wg.peers.keys())
-        }
+        return interface_to_dict(wg)
 
     def delete_interface(self, name: str, delete: bool):
         wg = self.interfaces.get(name)
