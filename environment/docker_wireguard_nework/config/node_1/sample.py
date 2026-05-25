@@ -1,3 +1,4 @@
+import os
 from ipaddress import IPv4Address, IPv6Address, IPv4Network, IPv6Network
 from wireguard_py.interface import WireGuardInterface
 from wireguard_py.keys import WireguardKey
@@ -23,7 +24,7 @@ def main():
         peers={
             "p1": Peer(
                 interface=node_2_endpoint,  # 10.10.10.2:40262
-                allowed_ips=[ network ],
+                allowed_ips=[ network, IPv4Network("172.20.0.0/24") ],
                 # privkey=str(node_2_key.private_key()), # Not Compulsory
                 pubkey=str(node_2_key.public_key()), 
             )
@@ -35,6 +36,10 @@ def main():
 
     wg0.bring_up()
     print("\nTunnel is Up ...")
+    os.system("ping 10.10.10.2 -c 5")
+
+    # ip route add 172.20.0.0/24 dev wg-1101 src 10.10.10.1
+    os.system("ip route add 172.20.0.0/24 dev wg-1101 src 10.10.10.1")
 
     while True:
         time.sleep(3)
