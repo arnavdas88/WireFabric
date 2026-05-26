@@ -1,0 +1,90 @@
+services:
+  node_1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_wg_1
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+    volumes:
+      - ./config/node_1:/config
+    env_file: .env
+    networks:
+      site_1:
+      internet:
+        ipv4_address: 172.30.30.2
+
+  node_2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_wg_2
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+    volumes:
+      - ./config/node_2:/config
+    env_file: .env
+    networks:
+      site_2:
+      internet:
+        ipv4_address: 172.30.30.3
+
+
+  node_3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_wg_3
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+    volumes:
+      - ./config/node_3:/config
+    env_file: .env
+    networks:
+      site_2:
+      internet:
+        ipv4_address: 172.30.30.4
+
+  node_4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_null_4
+    entrypoint: "bash"
+    env_file: .env
+    tty: true
+    stdin_open: true
+    networks:
+      site_2:
+
+networks:
+  site_1:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.10.0.0/24
+          gateway: 172.10.0.1
+
+  site_2:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+
+  internet:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.30.0/24
+          gateway: 172.30.30.1
+
